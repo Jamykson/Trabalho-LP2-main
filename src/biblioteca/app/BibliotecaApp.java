@@ -5,11 +5,10 @@ import biblioteca.exception.ValidacaoException;
 import biblioteca.model.*; // Importa Livro, Categoria, Usuario, Aluno, Professor, Funcionario
 import biblioteca.repository.*; // Importa Repositorio e as implementações em arquivo
 
-// NOVO: Imports para Empréstimo, Reserva e Datas
+// Imports para Empréstimo, Reserva e Datas
 import biblioteca.model.Emprestimo;
 import biblioteca.model.Reserva;
 import java.time.LocalDate;
-// FIM NOVO
 
 import java.util.InputMismatchException;
 import java.util.List;
@@ -23,10 +22,9 @@ public class BibliotecaApp {
     private static final Repositorio<Usuario> usuarioRepo = new UsuarioRepositorioArquivo();
     private static final Repositorio<Categoria> categoriaRepo = new CategoriaRepositorioArquivo();
     
-    // NOVO: Repositórios para Empréstimo e Reserva
+    // Repositórios para Empréstimo e Reserva
     private static final Repositorio<Emprestimo> emprestimoRepo = new EmprestimoRepositorioArquivo();
     private static final Repositorio<Reserva> reservaRepo = new ReservaRepositorioArquivo();
-    // FIM NOVO
 
     private static final Scanner scanner = new Scanner(System.in);
 
@@ -48,11 +46,9 @@ public class BibliotecaApp {
                         gerenciarCategorias();
                         break;
                     case 4:
-                        // ATUALIZADO: Chamando o método real
                         gerenciarEmprestimos();
                         break;
                     case 5:
-                        // ATUALIZADO: Chamando o método real
                         gerenciarReservas();
                         break;
                     case 0:
@@ -77,48 +73,357 @@ public class BibliotecaApp {
         System.out.println("1. Gerenciar Livros");
         System.out.println("2. Gerenciar Usuários");
         System.out.println("3. Gerenciar Categorias");
-        System.out.println("4. Gerenciar Empréstimos"); // ATUALIZADO
-        System.out.println("5. Gerenciar Reservas");    // ATUALIZADO
+        System.out.println("4. Gerenciar Empréstimos");
+        System.out.println("5. Gerenciar Reservas");
         System.out.println("0. Sair");
         System.out.print("Escolha uma opção: ");
     }
-
-    // ... (Os métodos gerenciarLivros, gerenciarUsuarios e gerenciarCategorias permanecem os mesmos) ...
-    // ... (Vou omiti-los aqui para economizar espaço, mas eles devem permanecer no seu arquivo) ...
     
     // -----------------------------------------------------------------
-    // GERENCIAMENTO DE LIVROS (Métodos omitidos por brevidade)
+    // GERENCIAMENTO DE LIVROS (CÓDIGO COMPLETO)
     // -----------------------------------------------------------------
-     private static void gerenciarLivros() { /* ... Seu código existente ... */ }
-     private static void adicionarLivro() throws ValidacaoException { /* ... Seu código existente ... */ }
-     private static void listarLivros() { /* ... Seu código existente ... */ }
-     private static void buscarLivroPorId() throws EntidadeNaoEncontradaException { /* ... Seu código existente ... */ }
-     private static void atualizarLivro() throws EntidadeNaoEncontradaException, ValidacaoException { /* ... Seu código existente ... */ }
-     private static void removerLivro() throws EntidadeNaoEncontradaException { /* ... Seu código existente ... */ }
+
+    private static void gerenciarLivros() {
+        while (true) {
+            System.out.println("\n--- Gerenciar Livros [CRUD] ---");
+            System.out.println("1. Adicionar Livro");
+            System.out.println("2. Listar Todos os Livros");
+            System.out.println("3. Buscar Livro por ID");
+            System.out.println("4. Atualizar Livro");
+            System.out.println("5. Remover Livro");
+            System.out.println("0. Voltar ao Menu Principal");
+            System.out.print("Escolha uma opção: ");
+
+            try {
+                int opcao = lerOpcao();
+                switch (opcao) {
+                    case 1:
+                        adicionarLivro();
+                        break;
+                    case 2:
+                        listarLivros();
+                        break;
+                    case 3:
+                        buscarLivroPorId();
+                        break;
+                    case 4:
+                        atualizarLivro();
+                        break;
+                    case 5:
+                        removerLivro();
+                        break;
+                    case 0:
+                        return; // Volta ao menu principal
+                    default:
+                        System.err.println("Opção inválida.");
+                }
+            } catch (ValidacaoException | EntidadeNaoEncontradaException e) {
+                // Tratamento amigável de exceções (Etapa 1)
+                System.err.println("Erro: " + e.getMessage());
+            } catch (InputMismatchException e) {
+                System.err.println("Erro: Entrada inválida. Use números.");
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.err.println("Erro inesperado: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void adicionarLivro() throws ValidacaoException {
+        System.out.println("Adicionar Novo Livro:");
+        int id = lerInt("ID: ");
+        String titulo = lerString("Título: ");
+        String autor = lerString("Autor: ");
+        String isbn = lerString("ISBN: ");
+        int ano = lerInt("Ano: ");
+        
+        System.out.println("Status (1: DISPONIVEL, 2: EMPRESTADO): ");
+        Livro.Status status = (lerOpcao() == 2) ? Livro.Status.EMPRESTADO : Livro.Status.DISPONIVEL;
+
+        Livro novoLivro = new Livro(id, titulo, autor, isbn, ano, status);
+        livroRepo.adicionar(novoLivro);
+        System.out.println("Livro adicionado com sucesso!");
+    }
+
+    private static void listarLivros() {
+        System.out.println("Listando todos os livros:");
+        List<Livro> livros = livroRepo.listaTodos();
+        if (livros.isEmpty()) {
+            System.out.println("Nenhum livro cadastrado.");
+        } else {
+            livros.forEach(System.out::println);
+        }
+    }
+
+    private static void buscarLivroPorId() throws EntidadeNaoEncontradaException {
+        int id = lerInt("ID do livro a buscar: ");
+        Livro livro = livroRepo.buscaPorId(id);
+        System.out.println("Livro encontrado: " + livro);
+    }
+
+    private static void atualizarLivro() throws EntidadeNaoEncontradaException, ValidacaoException {
+        int id = lerInt("ID do livro a atualizar: ");
+        Livro livroExistente = livroRepo.buscaPorId(id); // Valida se existe
+
+        System.out.println("Digite os novos dados (deixe em branco para manter o atual):");
+        
+        String titulo = lerString("Título (" + livroExistente.getTitulo() + "): ");
+        String autor = lerString("Autor (" + livroExistente.getAutor() + "): ");
+        String isbn = lerString("ISBN (" + livroExistente.getIsbn() + "): ");
+        String anoStr = lerString("Ano (" + livroExistente.getAno() + "): ");
+        String statusStr = lerString("Status (1: DISPONIVEL, 2: EMPRESTADO) (" + livroExistente.getStatus() + "): ");
+
+        // Atualiza o objeto
+        if (!titulo.isEmpty()) livroExistente.setTitulo(titulo);
+        if (!autor.isEmpty()) livroExistente.setAutor(autor);
+        if (!isbn.isEmpty()) livroExistente.setIsbn(isbn);
+        if (!anoStr.isEmpty()) livroExistente.setAno(Integer.parseInt(anoStr));
+        if (!statusStr.isEmpty()) {
+            livroExistente.setStatus((statusStr.equals("2")) ? Livro.Status.EMPRESTADO : Livro.Status.DISPONIVEL);
+        }
+
+        livroRepo.atualizar(livroExistente);
+        System.out.println("Livro atualizado com sucesso!");
+    }
+
+    private static void removerLivro() throws EntidadeNaoEncontradaException {
+        int id = lerInt("ID do livro a remover: ");
+        livroRepo.remover(id); // O repositório já trata a exceção se não encontrar
+        System.out.println("Livro removido com sucesso!");
+    }
 
     // -----------------------------------------------------------------
-    // GERENCIAMENTO DE USUÁRIOS (Métodos omitidos por brevidade)
+    // GERENCIAMENTO DE USUÁRIOS (CÓDIGO COMPLETO)
     // -----------------------------------------------------------------
-     private static void gerenciarUsuarios() { /* ... Seu código existente ... */ }
-     private static void adicionarUsuario() throws ValidacaoException { /* ... Seu código existente ... */ }
-     private static void listarUsuarios() { /* ... Seu código existente ... */ }
-     private static void buscarUsuarioPorId() throws EntidadeNaoEncontradaException { /* ... Seu código existente ... */ }
-     private static void atualizarUsuario() throws EntidadeNaoEncontradaException, ValidacaoException { /* ... Seu código existente ... */ }
-     private static void removerUsuario() throws EntidadeNaoEncontradaException { /* ... Seu código existente ... */ }
+
+    private static void gerenciarUsuarios() {
+        while (true) {
+            System.out.println("\n--- Gerenciar Usuários [CRUD] ---");
+            System.out.println("1. Adicionar Usuário (Aluno, Professor, Funcionário)");
+            System.out.println("2. Listar Todos os Usuários");
+            System.out.println("3. Buscar Usuário por ID");
+            System.out.println("4. Atualizar Usuário");
+            System.out.println("5. Remover Usuário");
+            System.out.println("0. Voltar ao Menu Principal");
+            System.out.print("Escolha uma opção: ");
+
+            try {
+                int opcao = lerOpcao();
+                switch (opcao) {
+                    case 1:
+                        adicionarUsuario();
+                        break;
+                    case 2:
+                        listarUsuarios();
+                        break;
+                    case 3:
+                        buscarUsuarioPorId();
+                        break;
+                    case 4:
+                        atualizarUsuario();
+                        break;
+                    case 5:
+                        removerUsuario();
+                        break;
+                    case 0:
+                        return; // Volta ao menu principal
+                    default:
+                        System.err.println("Opção inválida.");
+                }
+            } catch (ValidacaoException | EntidadeNaoEncontradaException e) {
+                System.err.println("Erro: " + e.getMessage());
+            } catch (InputMismatchException e) {
+                System.err.println("Erro: Entrada inválida. Use números.");
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.err.println("Erro inesperado: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void adicionarUsuario() throws ValidacaoException {
+        System.out.println("Tipo de Usuário (1: Aluno, 2: Professor, 3: Funcionário):");
+        int tipo = lerOpcao();
+
+        int id = lerInt("ID: ");
+        String nome = lerString("Nome: ");
+        String email = lerString("Email: ");
+        String telefone = lerString("Telefone: ");
+
+        Usuario novoUsuario;
+
+        switch (tipo) {
+            case 1: // Aluno
+                String matricula = lerString("Matrícula: ");
+                novoUsuario = new Aluno(id, nome, email, telefone, matricula);
+                break;
+            case 2: // Professor
+                String siape = lerString("SIAPE: ");
+                novoUsuario = new Professor(id, nome, email, telefone, siape);
+                break;
+            case 3: // Funcionário
+                String cargo = lerString("Cargo: ");
+                novoUsuario = new Funcionario(id, nome, email, telefone, cargo);
+                break;
+            default:
+                System.err.println("Tipo inválido, cancelando operação.");
+                return;
+        }
+
+        usuarioRepo.adicionar(novoUsuario); // Polimorfismo: adiciona Aluno/Prof/Func como Usuario
+        System.out.println("Usuário adicionado com sucesso!");
+    }
+
+    private static void listarUsuarios() {
+        System.out.println("Listando todos os usuários:");
+        List<Usuario> usuarios = usuarioRepo.listaTodos();
+        if (usuarios.isEmpty()) {
+            System.out.println("Nenhum usuário cadastrado.");
+        } else {
+            // O polimorfismo do `toString()` de Aluno, Professor e Funcionario
+            // é ativado aqui e no repositório de arquivo.
+            usuarios.forEach(System.out::println);
+        }
+    }
+
+    private static void buscarUsuarioPorId() throws EntidadeNaoEncontradaException {
+        int id = lerInt("ID do usuário a buscar: ");
+        Usuario u = usuarioRepo.buscaPorId(id);
+        System.out.println("Usuário encontrado: " + u);
+    }
+
+    private static void atualizarUsuario() throws EntidadeNaoEncontradaException, ValidacaoException {
+        int id = lerInt("ID do usuário a atualizar: ");
+        Usuario usuario = usuarioRepo.buscaPorId(id); // Valida se existe
+
+        System.out.println("Digite os novos dados (deixe em branco para manter o atual):");
+        
+        String nome = lerString("Nome (" + usuario.getNome() + "): ");
+        String email = lerString("Email (" + usuario.getEmail() + "): ");
+        String telefone = lerString("Telefone (" + usuario.getTelefone() + "): ");
+
+        // Atualiza campos comuns
+        if (!nome.isEmpty()) usuario.setNome(nome);
+        if (!email.isEmpty()) usuario.setEmail(email);
+        if (!telefone.isEmpty()) usuario.setTelefone(telefone);
+
+        // Atualiza campos específicos (usando 'instanceof' como na Etapa 2)
+        if (usuario instanceof Aluno) {
+            String matricula = lerString("Matrícula (" + ((Aluno) usuario).getMatricula() + "): ");
+            if (!matricula.isEmpty()) ((Aluno) usuario).setMatricula(matricula);
+        } else if (usuario instanceof Professor) {
+            String siape = lerString("SIAPE (" + ((Professor) usuario).getSiape() + "): ");
+            if (!siape.isEmpty()) ((Professor) usuario).setSiape(siape);
+        } else if (usuario instanceof Funcionario) {
+            String cargo = lerString("Cargo (" + ((Funcionario) usuario).getCargo() + "): ");
+            if (!cargo.isEmpty()) ((Funcionario) usuario).setCargo(cargo);
+        }
+
+        usuarioRepo.atualizar(usuario);
+        System.out.println("Usuário atualizado com sucesso!");
+    }
+
+    private static void removerUsuario() throws EntidadeNaoEncontradaException {
+        int id = lerInt("ID do usuário a remover: ");
+        usuarioRepo.remover(id);
+        System.out.println("Usuário removido com sucesso!");
+    }
 
     // -----------------------------------------------------------------
-    // GERENCIAMENTO DE CATEGORIAS (Métodos omitidos por brevidade)
+    // GERENCIAMENTO DE CATEGORIAS (CÓDIGO COMPLETO)
     // -----------------------------------------------------------------
-     private static void gerenciarCategorias() { /* ... Seu código existente ... */ }
-     private static void adicionarCategoria() throws ValidacaoException { /* ... Seu código existente ... */ }
-     private static void listarCategorias() { /* ... Seu código existente ... */ }
-     private static void buscarCategoriaPorId() throws EntidadeNaoEncontradaException { /* ... Seu código existente ... */ }
-     private static void atualizarCategoria() throws EntidadeNaoEncontradaException, ValidacaoException { /* ... Seu código existente ... */ }
-     private static void removerCategoria() throws EntidadeNaoEncontradaException { /* ... Seu código existente ... */ }
+    
+    private static void gerenciarCategorias() {
+        while (true) {
+            System.out.println("\n--- Gerenciar Categorias [CRUD] ---");
+            System.out.println("1. Adicionar Categoria");
+            System.out.println("2. Listar Todas as Categorias");
+            System.out.println("3. Buscar Categoria por ID");
+            System.out.println("4. Atualizar Categoria");
+            System.out.println("5. Remover Categoria");
+            System.out.println("0. Voltar ao Menu Principal");
+            System.out.print("Escolha uma opção: ");
 
+            try {
+                int opcao = lerOpcao();
+                switch (opcao) {
+                    case 1:
+                        adicionarCategoria();
+                        break;
+                    case 2:
+                        listarCategorias();
+                        break;
+                    case 3:
+                        buscarCategoriaPorId();
+                        break;
+                    case 4:
+                        atualizarCategoria();
+                        break;
+                    case 5:
+                        removerCategoria();
+                        break;
+                    case 0:
+                        return; // Volta ao menu principal
+                    default:
+                        System.err.println("Opção inválida.");
+                }
+            } catch (ValidacaoException | EntidadeNaoEncontradaException e) {
+                System.err.println("Erro: " + e.getMessage());
+            } catch (InputMismatchException e) {
+                System.err.println("Erro: Entrada inválida. Use números.");
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.err.println("Erro inesperado: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void adicionarCategoria() throws ValidacaoException {
+        int id = lerInt("ID: ");
+        String nome = lerString("Nome: ");
+        String descricao = lerString("Descrição: ");
+        categoriaRepo.adicionar(new Categoria(id, nome, descricao));
+        System.out.println("Categoria adicionada com sucesso!");
+    }
+
+    private static void listarCategorias() {
+        System.out.println("Listando todas as categorias:");
+        List<Categoria> categorias = categoriaRepo.listaTodos();
+        if (categorias.isEmpty()) {
+            System.out.println("Nenhuma categoria cadastrada.");
+        } else {
+            categorias.forEach(System.out::println);
+        }
+    }
+
+     private static void buscarCategoriaPorId() throws EntidadeNaoEncontradaException {
+        int id = lerInt("ID da categoria a buscar: ");
+        Categoria c = categoriaRepo.buscaPorId(id);
+        System.out.println("Categoria encontrada: " + c);
+    }
+
+    private static void atualizarCategoria() throws EntidadeNaoEncontradaException, ValidacaoException {
+        int id = lerInt("ID da categoria a atualizar: ");
+        Categoria cat = categoriaRepo.buscaPorId(id);
+
+        String nome = lerString("Nome (" + cat.getNome() + "): ");
+        String descricao = lerString("Descrição (" + cat.getDescricao() + "): ");
+
+        if (!nome.isEmpty()) cat.setNome(nome);
+        if (!descricao.isEmpty()) cat.setDescricao(descricao);
+
+        categoriaRepo.atualizar(cat);
+        System.out.println("Categoria atualizada com sucesso!");
+    }
+    
+    private static void removerCategoria() throws EntidadeNaoEncontradaException {
+        int id = lerInt("ID da categoria a remover: ");
+        categoriaRepo.remover(id);
+        System.out.println("Categoria removida com sucesso!");
+    }
 
     // -----------------------------------------------------------------
-    // NOVO: GERENCIAMENTO DE EMPRÉSTIMOS
+    // GERENCIAMENTO DE EMPRÉSTIMOS (CÓDIGO COMPLETO)
     // -----------------------------------------------------------------
 
     private static void gerenciarEmprestimos() {
@@ -240,7 +545,7 @@ public class BibliotecaApp {
     }
 
     // -----------------------------------------------------------------
-    // NOVO: GERENCIAMENTO DE RESERVAS
+    // GERENCIAMENTO DE RESERVAS (CÓDIGO COMPLETO)
     // -----------------------------------------------------------------
 
     private static void gerenciarReservas() {
@@ -298,22 +603,20 @@ public class BibliotecaApp {
         System.out.println("Reserva criada com sucesso!");
     }
 
-    private static void cancelarReserva() throws EntidadeNaoEncontradaException {
+    private static void cancelarReserva() throws EntidadeNaoEncontradaException, ValidacaoException {
         System.out.println("Cancelar Reserva:");
         int idReserva = lerInt("ID da Reserva a ser cancelada: ");
         
-        // Valida se existe antes de remover
-        reservaRepo.buscaPorId(idReserva);
+        Reserva reserva = reservaRepo.buscaPorId(idReserva);
+        if (reserva.getStatus() == Reserva.Status.CANCELADA) {
+             throw new ValidacaoException("Esta reserva já está cancelada.");
+        }
         
-        reservaRepo.remover(idReserva);
+        // Em vez de remover, vamos atualizar o status
+        reserva.setStatus(Reserva.Status.CANCELADA);
+        reservaRepo.atualizar(reserva);
+        
         System.out.println("Reserva cancelada com sucesso.");
-        
-        // Opcional: Poderíamos mudar o status para CANCELADA em vez de remover
-        /*
-        Reserva r = reservaRepo.buscaPorId(idReserva);
-        r.setStatus(Reserva.Status.CANCELADA);
-        reservaRepo.atualizar(r);
-        */
     }
 
     private static void listarReservasPendentes() {
@@ -331,7 +634,7 @@ public class BibliotecaApp {
 
 
     // -----------------------------------------------------------------
-    // MÉTODOS UTILITÁRIOS (Helpers) - (sem alterações)
+    // MÉTODOS UTILITÁRIOS (Helpers)
     // -----------------------------------------------------------------
 
     private static int lerOpcao() {
