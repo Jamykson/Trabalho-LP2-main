@@ -67,12 +67,12 @@ classDiagram
         -dataReserva: Date
     }
 
-    ' --- Herança ---
+    %% --- Herança ---
     Usuario <|-- Aluno
     Usuario <|-- Professor
     Usuario <|-- Funcionario
 
-    ' --- Enum (Status do Livro) ---
+    %% --- Enum (Status do Livro) ---
     class StatusLivro {
         <<Enumeration>>
         DISPONIVEL
@@ -80,14 +80,14 @@ classDiagram
     }
     Livro o-- StatusLivro
 
-    ' --- Associações (Exemplos) ---
+    %% --- Associações (Exemplos) ---
     Livro "1" -- "0..*" Emprestimo : emprestado por >
     Usuario "1" -- "0..*" Emprestimo : realiza >
     Livro "1" -- "0..*" Reserva : reservado por >
     Usuario "1" -- "0..*" Reserva : faz >
     Categoria "1" -- "0..*" Livro : agrupa >
 
-    ' --- Interface Repositório (Tarefa 2) ---
+    %% --- Interface Repositório (Tarefa 2) ---
     class Repositorio {
         <<Interface>>
         +T salvar(T entidade)
@@ -113,7 +113,7 @@ classDiagram
     Repositorio <|.. ArquivoRepositorio : implementa
     Repositorio <|.. MemoriaRepositorio : implementa
 
-    ' --- Exceções (Sua Tarefa) ---
+    %% --- Exceções (Sua Tarefa) ---
     class Exception {
         <<Java Util>>
     }
