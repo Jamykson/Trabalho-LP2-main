@@ -1,3 +1,4 @@
+```mermaid
 classDiagram
     direction LR
 
@@ -78,7 +79,7 @@ classDiagram
         DISPONIVEL
         EMPRESTADO
     }
-    Livro o-- StatusLivro
+    Livro o-- StatusLivo
 
     %% --- Associações (Exemplos) ---
     Livro "1" -- "0..*" Emprestimo : emprestado por >
